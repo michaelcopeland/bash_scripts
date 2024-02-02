@@ -24,19 +24,37 @@ run_cmd() {
     done
 }
 
-# Fetch and display available PHP versions from the repository
+# Show currently installed PHP versions
+CURRENT_VERSIONS=$(dpkg -l | grep 'php' | grep -oP 'php[0-9]\.[0-9]+' | sort -u)
+if [ -z "$CURRENT_VERSIONS" ]; then
+    echo -e "\033[0;31mNo PHP versions currently installed.\033[0m"
+else
+    echo -e "\033[0;32mCurrently installed PHP versions:\033[0m"
+    echo "$CURRENT_VERSIONS"
+fi
+
+# Fetch and display available PHP versions from the repository, excluding already installed versions
 echo -e "\033[0;36mFetching available PHP versions...\033[0m"
-PHP_VERSIONS=$(apt-cache search php | grep -oP 'php[0-9]\.[0-9]+' | sort -u)
-echo -e "\033[0;32mAvailable PHP versions:\033[0m"
-echo "$PHP_VERSIONS" | nl
+AVAILABLE_VERSIONS=$(apt-cache search php | grep -oP 'php[0-9]\.[0-9]+' | sort -u | grep -vxF -f <(echo "$CURRENT_VERSIONS"))
+if [ -z "$AVAILABLE_VERSIONS" ]; then
+    echo -e "\033[0;31mNo new PHP versions available for installation.\033[0m"
+    exit 0
+else
+    echo -e "\033[0;32mAvailable PHP versions for installation:\033[0m"
+    echo "$AVAILABLE_VERSIONS" | nl
+fi
 
 # Prompt user to select PHP version
-echo -e "\033[0;33mEnter the number for the desired PHP version to install:\033[0m"
+echo -e "\033[0;33mEnter the number for the desired PHP version to install (or press Enter to cancel):\033[0m"
 read -r choice
-TARGET_PHP_VERSION=$(echo "$PHP_VERSIONS" | sed -n "${choice}p")
+if [ -z "$choice" ]; then
+    echo -e "\033[0;31mInstallation cancelled.\033[0m"
+    exit 0
+fi
+TARGET_PHP_VERSION=$(echo "$AVAILABLE_VERSIONS" | sed -n "${choice}p")
 
 if [ -z "$TARGET_PHP_VERSION" ]; then
-    echo -e "\033[0;31mInvalid selection or no PHP version selected.\033[0m"
+    echo -e "\033[0;31mInvalid selection.\033[0m"
     exit 1
 fi
 
