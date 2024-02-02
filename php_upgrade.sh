@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Often times I found myself needing to update to a new version of PHP. This was a hassle as I also need to update the extensions.
+# Often times I found myself needing to update to a new version of PHP. This was a hassle as I also needed to update the extensions.
 # I didn't want to copy and paste every single one anymore. So I made this script and now we're able to do it with ease.
-# Be sure to disable to 'DRY_RUN' in order to make changes.
 
 # Function to execute command
 run_cmd() {
